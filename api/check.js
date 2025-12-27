@@ -4,7 +4,7 @@ export default function handler(req, res) {
   // This is where your secret codes live!
   const answers = {
     1: "TWENTY TWO",
-    2: "SECOND SECRET" // Change this to whatever your second code is
+    2: "OPUS" 
   };
 
   // This checks if the user's guess matches your secret (ignoring caps)
