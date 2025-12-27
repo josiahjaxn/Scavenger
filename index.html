@@ -1,15 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ENTRANCE</title>
+    <title>THE VAULT</title>
     <style>
-        body { background: black; color: white; display: flex; height: 100vh; align-items: center; justify-content: center; margin: 0; font-family: monospace; }
-        input { background: transparent; border: none; color: white; font-size: 2rem; text-align: center; outline: none; animation: blink 1s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        body { 
+            /* This creates the dark background with the golden sunrise at the bottom */
+            background: linear-gradient(to bottom, #000000 60%, #443311 90%, #997722 100%);
+            color: #d4af37; /* Metallic Gold color */
+            display: flex; 
+            flex-direction: column;
+            height: 100vh; 
+            align-items: center; 
+            justify-content: center; 
+            margin: 0; 
+            font-family: 'Garamond', serif; 
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        input { 
+            background: rgba(0, 0, 0, 0.6); /* Semi-transparent black */
+            border: 2px solid #d4af37; 
+            border-radius: 8px;
+            color: #f1e5ac; 
+            font-size: 1.5rem; 
+            padding: 15px 30px;
+            text-align: center; 
+            outline: none; 
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            /* This creates the golden glow around the box */
+            box-shadow: 0 0 15px #997722, inset 0 0 5px #997722;
+            animation: pulse-glow 2s infinite alternate;
+        }
+
+        /* This makes the glow "breathe" in and out */
+        @keyframes pulse-glow {
+            from { box-shadow: 0 0 10px #997722; }
+            to { box-shadow: 0 0 25px #d4af37; }
+        }
+
+        input::placeholder {
+            color: #665522;
+        }
     </style>
 </head>
 <body>
-    <input type="text" id="codeField" placeholder="ENTER CODE" autofocus>
+
+    <div class="container">
+        <input type="text" id="codeField" placeholder="ENTER CODE" autofocus autocomplete="off">
+    </div>
 
     <script>
         let currentStep = 1;
@@ -27,14 +69,17 @@
                     if (currentStep === 1) {
                         currentStep = 2;
                         input.value = "";
-                        input.placeholder = "NEXT CODE";
+                        input.placeholder = "SECOND KEY";
                     } else {
-                        // CHANGE THIS TO YOUR FINAL YOUTUBE LINK
+                        // YOUR FINAL REDIRECT
                         window.location.href = "https://www.youtube.com/watch?v=YOUR_VIDEO_ID";
                     }
                 } else {
                     input.value = "";
-                    input.placeholder = "WRONG. TRY AGAIN.";
+                    input.placeholder = "ACCESS DENIED";
+                    // Brief shake effect for wrong code
+                    input.style.borderColor = "red";
+                    setTimeout(() => { input.style.borderColor = "#d4af37"; }, 500);
                 }
             }
         });
