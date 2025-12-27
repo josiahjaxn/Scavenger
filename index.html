@@ -6,10 +6,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
-    <title>THE VAULT</title>
+    <title>DOCTOR'S HUNT</title>
     <style>
         :root {
-            /* Using 'dvh' (dynamic viewport height) to kill the white bars on iPhone */
             --screen-height: 100dvh; 
         }
 
@@ -25,8 +24,8 @@
             justify-content: center; 
             margin: 0; 
             font-family: 'Garamond', serif;
-            overflow: hidden; /* Prevents bouncing/scrolling */
-            position: fixed; /* Locks the screen in place */
+            overflow: hidden;
+            position: fixed;
         }
 
         .container {
@@ -49,10 +48,9 @@
             text-transform: uppercase;
             letter-spacing: 4px;
             box-shadow: 0 0 15px #997722;
-            -webkit-appearance: none; /* Removes iPhone default styling */
+            -webkit-appearance: none;
         }
 
-        /* Fixed Animation: Targeting the placeholder directly with a more stable method */
         input::placeholder {
             color: #d4af37;
             transition: opacity 1.25s ease-in-out;
@@ -64,7 +62,6 @@
             50% { opacity: 0.15; }
         }
 
-        /* Stops the blinking when user is typing */
         input:not(:placeholder-shown) {
             animation: none;
         }
@@ -80,7 +77,6 @@
         let currentStep = 1;
         const input = document.getElementById('codeField');
 
-        // This helps keep the keyboard from breaking the layout on iPhone
         window.addEventListener('resize', () => {
             document.documentElement.style.setProperty('--screen-height', `${window.innerHeight}px`);
         });
@@ -88,7 +84,7 @@
         input.addEventListener('keypress', async (e) => {
             if (e.key === 'Enter') {
                 const enteredCode = input.value;
-                input.blur(); // Hide keyboard on submit
+                input.blur(); 
                 
                 const response = await fetch('/api/check', {
                     method: 'POST',
@@ -102,6 +98,7 @@
                         input.value = "";
                         input.placeholder = "SECOND KEY";
                     } else {
+                        // REMEMBER TO UPDATE THIS LINK BEFORE YOU GO LIVE
                         window.location.href = "https://www.youtube.com/watch?v=YOUR_VIDEO_ID";
                     }
                 } else {
@@ -114,7 +111,7 @@
                         input.style.borderColor = "#d4af37";
                         input.style.boxShadow = "0 0 15px #997722";
                         input.placeholder = currentStep === 1 ? "ENTER CODE" : "SECOND KEY";
-                        input.focus(); // Bring keyboard back
+                        input.focus();
                     }, 2000);
                 }
             }
