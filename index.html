@@ -1,77 +1,94 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
     <title>THE VAULT</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        :root {
+            /* Using 'dvh' (dynamic viewport height) to kill the white bars on iPhone */
+            --screen-height: 100dvh; 
+        }
+
         body { 
             background: linear-gradient(to bottom, #000000 60%, #443311 90%, #997722 100%);
+            background-color: #000000;
             color: #d4af37;
             display: flex; 
             flex-direction: column;
-            height: 100vh; 
+            height: var(--screen-height); 
+            width: 100vw;
             align-items: center; 
             justify-content: center; 
             margin: 0; 
             font-family: 'Garamond', serif;
-            overflow: hidden;
+            overflow: hidden; /* Prevents bouncing/scrolling */
+            position: fixed; /* Locks the screen in place */
         }
 
         .container {
-            width: 90%; 
-            max-width: 400px; 
+            width: 85%; 
+            max-width: 350px; 
             text-align: center;
         }
 
         input { 
             width: 100%; 
             box-sizing: border-box;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.9);
             border: 2px solid #d4af37; 
-            border-radius: 8px;
-            color: #f1e5ac; /* The color of the text you type */
-            font-size: 1.8rem; 
-            padding: 20px;
+            border-radius: 12px;
+            color: #f1e5ac; 
+            font-size: 1.6rem; 
+            padding: 18px;
             text-align: center; 
             outline: none; 
             text-transform: uppercase;
             letter-spacing: 4px;
-            /* Static glow for the box itself */
             box-shadow: 0 0 15px #997722;
+            -webkit-appearance: none; /* Removes iPhone default styling */
         }
 
-        /* This specifically targets the "ENTER CODE" placeholder text */
+        /* Fixed Animation: Targeting the placeholder directly with a more stable method */
         input::placeholder {
             color: #d4af37;
-            /* The animation is now ONLY on the placeholder */
-            animation: textBlink 2.5s linear infinite;
+            transition: opacity 1.25s ease-in-out;
+            animation: stableBlink 2.5s infinite both;
         }
 
-        @keyframes textBlink {
+        @keyframes stableBlink {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.1; }
+            50% { opacity: 0.15; }
         }
 
-        /* This ensures that when you type, the typed text does NOT blink */
-        input:focus::placeholder {
+        /* Stops the blinking when user is typing */
+        input:not(:placeholder-shown) {
             animation: none;
-            opacity: 0;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <input type="text" id="codeField" placeholder="ENTER CODE" autofocus autocomplete="off">
+        <input type="text" id="codeField" placeholder="ENTER CODE" autofocus autocomplete="off" spellcheck="false">
     </div>
 
     <script>
         let currentStep = 1;
         const input = document.getElementById('codeField');
 
+        // This helps keep the keyboard from breaking the layout on iPhone
+        window.addEventListener('resize', () => {
+            document.documentElement.style.setProperty('--screen-height', `${window.innerHeight}px`);
+        });
+
         input.addEventListener('keypress', async (e) => {
             if (e.key === 'Enter') {
                 const enteredCode = input.value;
+                input.blur(); // Hide keyboard on submit
                 
                 const response = await fetch('/api/check', {
                     method: 'POST',
@@ -97,6 +114,7 @@
                         input.style.borderColor = "#d4af37";
                         input.style.boxShadow = "0 0 15px #997722";
                         input.placeholder = currentStep === 1 ? "ENTER CODE" : "SECOND KEY";
+                        input.focus(); // Bring keyboard back
                     }, 2000);
                 }
             }
