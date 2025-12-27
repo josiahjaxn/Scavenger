@@ -13,7 +13,6 @@
         body { 
             background: linear-gradient(to bottom, #000000 60%, #443311 90%, #997722 100%);
             background-color: #000000;
-            transition: background 1.5s ease; /* Smooth fade for the background */
             display: flex; 
             flex-direction: column;
             height: var(--screen-height); 
@@ -26,7 +25,7 @@
             position: fixed;
         }
 
-        /* This overlay handles the fade-to-white over the entire screen */
+        /* This handles the white fade transition */
         #white-out {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -54,16 +53,23 @@
             letter-spacing: 4px;
             box-shadow: 0 0 15px #997722;
             transition: all 0.5s ease;
+            -webkit-appearance: none;
         }
 
+        /* Pulsing placeholder text */
         input::placeholder {
             color: #d4af37;
+            transition: opacity 1.25s ease-in-out;
             animation: stableBlink 2.5s infinite both;
         }
 
         @keyframes stableBlink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.15; }
+        }
+
+        input:not(:placeholder-shown) {
+            animation: none;
         }
     </style>
 </head>
@@ -81,6 +87,11 @@
         const whiteOut = document.getElementById('white-out');
         const themeMeta = document.getElementById('nav-theme');
 
+        // Fix for mobile keyboard height issues
+        window.addEventListener('resize', () => {
+            document.documentElement.style.setProperty('--screen-height', `${window.innerHeight}px`);
+        });
+
         input.addEventListener('keypress', async (e) => {
             if (e.key === 'Enter') {
                 const enteredCode = input.value;
@@ -93,34 +104,35 @@
                 });
 
                 if (response.ok) {
-                    // SUCCESS STATE
-                    input.style.borderColor = "#00ff00"; // Blink Green
+                    // CORRECT CODE EFFECT
+                    input.style.borderColor = "#00ff00"; 
                     input.style.boxShadow = "0 0 20px #00ff00";
                     
                     setTimeout(() => {
-                        // Start the White-Out transition
+                        // Fade to White
                         whiteOut.style.opacity = "1";
-                        themeMeta.setAttribute("content", "#efece3"); // Change iPhone status bar color
+                        themeMeta.setAttribute("content", "#efece3");
                         
                         setTimeout(() => {
                             if (currentStep === 1) {
+                                // MOVE TO LEVEL 2
                                 currentStep = 2;
-                                // Reset for Page 2
                                 whiteOut.style.opacity = "0";
                                 themeMeta.setAttribute("content", "#000000");
                                 input.value = "";
                                 input.style.borderColor = "#d4af37";
                                 input.style.boxShadow = "0 0 15px #997722";
-                                input.placeholder = "SECOND KEY";
+                                input.placeholder = "FINAL CODE";
                                 input.focus();
                             } else {
+                                // FINISHED: REPLACE WITH YOUR YOUTUBE URL
                                 window.location.href = "https://www.youtube.com/watch?v=YOUR_VIDEO_ID";
                             }
-                        }, 1500); // Duration of the white screen
+                        }, 1500);
                     }, 500); 
 
                 } else {
-                    // FAIL STATE
+                    // WRONG CODE EFFECT
                     input.value = "";
                     input.placeholder = "ACCESS DENIED";
                     input.style.borderColor = "red";
@@ -129,7 +141,8 @@
                     setTimeout(() => {
                         input.style.borderColor = "#d4af37";
                         input.style.boxShadow = "0 0 15px #997722";
-                        input.placeholder = currentStep === 1 ? "ENTER CODE" : "SECOND KEY";
+                        // Returns to correct text based on current level
+                        input.placeholder = currentStep === 1 ? "ENTER CODE" : "FINAL CODE";
                         input.focus();
                     }, 2000);
                 }
