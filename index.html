@@ -35,7 +35,7 @@
             z-index: 999;
         }
 
-        .container { width: 85%; max-width: 350px; text-align: center; z-index: 10; }
+        .container { width: 90%; max-width: 450px; text-align: center; z-index: 10; }
 
         input { 
             width: 100%; 
@@ -44,8 +44,8 @@
             border: 2px solid #d4af37; 
             border-radius: 12px;
             color: #f1e5ac; 
-            font-size: 1.6rem; 
-            padding: 18px;
+            font-size: 1.8rem; /* Slightly larger text */
+            padding: 22px;
             text-align: center; 
             outline: none; 
             text-transform: uppercase;
@@ -66,10 +66,6 @@
             50% { opacity: 0.15; }
         }
 
-        input:not(:placeholder-shown) {
-            animation: none;
-        }
-
         /* Styling for the final page */
         #final-page {
             display: none;
@@ -77,24 +73,28 @@
             align-items: center;
             justify-content: center;
             z-index: 20;
+            width: 100%;
+            height: 100%;
         }
 
         #final-page h1 {
             color: #d4af37;
-            font-size: 2.5rem;
-            margin-bottom: 20px;
+            font-size: clamp(2.5rem, 8vw, 5rem); /* Dynamically scales text size */
+            margin-bottom: 30px;
             text-transform: uppercase;
-            letter-spacing: 5px;
+            letter-spacing: 8px;
+            text-shadow: 0 0 20px rgba(153, 119, 34, 0.5);
         }
 
         .video-container {
-            width: 90%;
-            max-width: 560px;
+            width: 90%; /* Mobile width */
+            max-width: 75vw; /* Fills 3/4th of screen on desktop */
             aspect-ratio: 16 / 9;
-            box-shadow: 0 0 30px #997722;
-            border: 2px solid #d4af37;
-            border-radius: 12px;
+            box-shadow: 0 0 50px rgba(153, 119, 34, 0.6);
+            border: 3px solid #d4af37;
+            border-radius: 15px;
             overflow: hidden;
+            background: #000;
         }
 
         iframe {
@@ -115,7 +115,7 @@
     <div id="final-page">
         <h1>WELL DONE</h1>
         <div class="video-container">
-            <iframe src="https://www.youtube.com/embed/KmVngyE8flc" allowfullscreen></iframe>
+            <iframe src="https://www.youtube.com/embed/KmVngyE8flc?rel=0&modestbranding=1" allowfullscreen></iframe>
         </div>
     </div>
 
@@ -161,7 +161,6 @@
                                 input.placeholder = "FINAL CODE";
                                 input.focus();
                             } else {
-                                // Transition to Final Page
                                 whiteOut.style.opacity = "0";
                                 themeMeta.setAttribute("content", "#000000");
                                 inputContainer.style.display = "none";
