@@ -18,37 +18,37 @@
         }
 
         .container {
-            width: 90%; /* Helps with phone screens */
-            max-width: 400px; /* Keeps it narrow on desktop */
+            width: 90%; 
+            max-width: 400px; 
             text-align: center;
         }
 
         input { 
-            width: 100%; /* Fills the container */
+            width: 100%; 
             box-sizing: border-box;
             background: rgba(0, 0, 0, 0.8);
             border: 2px solid #d4af37; 
             border-radius: 8px;
             color: #f1e5ac; 
-            font-size: 1.8rem; /* Larger text for mobile */
+            font-size: 1.8rem; 
             padding: 20px;
             text-align: center; 
             outline: none; 
             text-transform: uppercase;
             letter-spacing: 4px;
             box-shadow: 0 0 15px #997722;
-            transition: border-color 0.3s ease;
+            transition: all 0.3s ease;
         }
 
-        /* The Blinking Animation - slower speed */
-        @keyframes blinker {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.2; }
+        /* The Pulse Animation - No more blinking */
+        @keyframes pulse {
+            0% { opacity: 1; border-color: #d4af37; box-shadow: 0 0 10px #997722; }
+            100% { opacity: 0.6; border-color: #997722; box-shadow: 0 0 20px #d4af37; }
         }
 
-        /* This only blinks when the box is EMPTY */
+        /* This pulses ONLY when the box is empty */
         input:placeholder-shown {
-            animation: blinker 2s linear infinite;
+            animation: pulse 2.5s ease-in-out infinite alternate;
         }
 
         input::placeholder {
@@ -70,6 +70,10 @@
             if (e.key === 'Enter') {
                 const enteredCode = input.value;
                 
+                // Keep things looking solid while checking
+                input.style.animation = "none";
+                input.style.opacity = "1";
+
                 const response = await fetch('/api/check', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -85,17 +89,21 @@
                         window.location.href = "https://www.youtube.com/watch?v=YOUR_VIDEO_ID";
                     }
                 } else {
-                    // Fail state
+                    // Fail state: Red glow and text
                     input.value = "";
                     input.placeholder = "ACCESS DENIED";
                     input.style.borderColor = "red";
-                    input.style.boxShadow = "0 0 20px red";
+                    input.style.boxShadow = "0 0 25px red";
+                    input.style.color = "red";
 
-                    // Reset back to normal after 2 seconds
+                    // Reset back to gold after 2 seconds
                     setTimeout(() => {
                         input.style.borderColor = "#d4af37";
                         input.style.boxShadow = "0 0 15px #997722";
+                        input.style.color = "#f1e5ac";
                         input.placeholder = currentStep === 1 ? "ENTER CODE" : "SECOND KEY";
+                        // Re-enable pulse after reset
+                        input.style.animation = ""; 
                     }, 2000);
                 }
             }
