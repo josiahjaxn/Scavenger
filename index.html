@@ -29,30 +29,33 @@
             background: rgba(0, 0, 0, 0.8);
             border: 2px solid #d4af37; 
             border-radius: 8px;
-            color: #f1e5ac; 
+            color: #f1e5ac; /* The color of the text you type */
             font-size: 1.8rem; 
             padding: 20px;
             text-align: center; 
             outline: none; 
             text-transform: uppercase;
             letter-spacing: 4px;
+            /* Static glow for the box itself */
             box-shadow: 0 0 15px #997722;
-            transition: all 0.3s ease;
         }
 
-        /* The Pulse Animation - No more blinking */
-        @keyframes pulse {
-            0% { opacity: 1; border-color: #d4af37; box-shadow: 0 0 10px #997722; }
-            100% { opacity: 0.6; border-color: #997722; box-shadow: 0 0 20px #d4af37; }
-        }
-
-        /* This pulses ONLY when the box is empty */
-        input:placeholder-shown {
-            animation: pulse 2.5s ease-in-out infinite alternate;
-        }
-
+        /* This specifically targets the "ENTER CODE" placeholder text */
         input::placeholder {
             color: #d4af37;
+            /* The animation is now ONLY on the placeholder */
+            animation: textBlink 2.5s linear infinite;
+        }
+
+        @keyframes textBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.1; }
+        }
+
+        /* This ensures that when you type, the typed text does NOT blink */
+        input:focus::placeholder {
+            animation: none;
+            opacity: 0;
         }
     </style>
 </head>
@@ -70,10 +73,6 @@
             if (e.key === 'Enter') {
                 const enteredCode = input.value;
                 
-                // Keep things looking solid while checking
-                input.style.animation = "none";
-                input.style.opacity = "1";
-
                 const response = await fetch('/api/check', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -89,21 +88,15 @@
                         window.location.href = "https://www.youtube.com/watch?v=YOUR_VIDEO_ID";
                     }
                 } else {
-                    // Fail state: Red glow and text
                     input.value = "";
                     input.placeholder = "ACCESS DENIED";
                     input.style.borderColor = "red";
-                    input.style.boxShadow = "0 0 25px red";
-                    input.style.color = "red";
+                    input.style.boxShadow = "0 0 20px red";
 
-                    // Reset back to gold after 2 seconds
                     setTimeout(() => {
                         input.style.borderColor = "#d4af37";
                         input.style.boxShadow = "0 0 15px #997722";
-                        input.style.color = "#f1e5ac";
                         input.placeholder = currentStep === 1 ? "ENTER CODE" : "SECOND KEY";
-                        // Re-enable pulse after reset
-                        input.style.animation = ""; 
                     }, 2000);
                 }
             }
