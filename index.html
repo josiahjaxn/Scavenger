@@ -25,7 +25,6 @@
             position: fixed;
         }
 
-        /* This handles the white fade transition */
         #white-out {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -56,7 +55,6 @@
             -webkit-appearance: none;
         }
 
-        /* Pulsing placeholder text */
         input::placeholder {
             color: #d4af37;
             transition: opacity 1.25s ease-in-out;
@@ -71,14 +69,54 @@
         input:not(:placeholder-shown) {
             animation: none;
         }
+
+        /* Styling for the final page */
+        #final-page {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+        }
+
+        #final-page h1 {
+            color: #d4af37;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+        }
+
+        .video-container {
+            width: 90%;
+            max-width: 560px;
+            aspect-ratio: 16 / 9;
+            box-shadow: 0 0 30px #997722;
+            border: 2px solid #d4af37;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
     </style>
 </head>
 <body>
 
     <div id="white-out"></div>
 
-    <div class="container">
+    <div class="container" id="input-container">
         <input type="text" id="codeField" placeholder="ENTER CODE" autofocus autocomplete="off" spellcheck="false">
+    </div>
+
+    <div id="final-page">
+        <h1>WELL DONE</h1>
+        <div class="video-container">
+            <iframe src="https://www.youtube.com/embed/KmVngyE8flc" allowfullscreen></iframe>
+        </div>
     </div>
 
     <script>
@@ -86,8 +124,9 @@
         const input = document.getElementById('codeField');
         const whiteOut = document.getElementById('white-out');
         const themeMeta = document.getElementById('nav-theme');
+        const inputContainer = document.getElementById('input-container');
+        const finalPage = document.getElementById('final-page');
 
-        // Fix for mobile keyboard height issues
         window.addEventListener('resize', () => {
             document.documentElement.style.setProperty('--screen-height', `${window.innerHeight}px`);
         });
@@ -104,18 +143,15 @@
                 });
 
                 if (response.ok) {
-                    // CORRECT CODE EFFECT
                     input.style.borderColor = "#00ff00"; 
                     input.style.boxShadow = "0 0 20px #00ff00";
                     
                     setTimeout(() => {
-                        // Fade to White
                         whiteOut.style.opacity = "1";
                         themeMeta.setAttribute("content", "#efece3");
                         
                         setTimeout(() => {
                             if (currentStep === 1) {
-                                // MOVE TO LEVEL 2
                                 currentStep = 2;
                                 whiteOut.style.opacity = "0";
                                 themeMeta.setAttribute("content", "#000000");
@@ -125,14 +161,16 @@
                                 input.placeholder = "FINAL CODE";
                                 input.focus();
                             } else {
-                                // FINISHED: REPLACE WITH YOUR YOUTUBE URL
-                                window.location.href = "https://www.youtube.com/watch?v=YOUR_VIDEO_ID";
+                                // Transition to Final Page
+                                whiteOut.style.opacity = "0";
+                                themeMeta.setAttribute("content", "#000000");
+                                inputContainer.style.display = "none";
+                                finalPage.style.display = "flex";
                             }
                         }, 1500);
                     }, 500); 
 
                 } else {
-                    // WRONG CODE EFFECT
                     input.value = "";
                     input.placeholder = "ACCESS DENIED";
                     input.style.borderColor = "red";
@@ -141,7 +179,6 @@
                     setTimeout(() => {
                         input.style.borderColor = "#d4af37";
                         input.style.boxShadow = "0 0 15px #997722";
-                        // Returns to correct text based on current level
                         input.placeholder = currentStep === 1 ? "ENTER CODE" : "FINAL CODE";
                         input.focus();
                     }, 2000);
