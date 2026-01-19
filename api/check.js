@@ -6,8 +6,15 @@ export default async function handler(req, res) {
 
   // 1. Handling Code Checks
   if (method === 'POST' && code) {
-    const answers = { 1: "TWENTY TWO", 2: "OPUS" };
-    if (code.toUpperCase() === answers[step]) {
+    // We clean the user's input by removing all spaces and making it Uppercase
+    const cleanedInput = code.replace(/\s+/g, '').toUpperCase();
+
+    const answers = { 
+      1: "TWENTY TWO".replace(/\s+/g, ''), // Matches "TWENTY TWO" or "TWENTYTWOT"
+      2: "OPUS" 
+    };
+
+    if (cleanedInput === answers[step]) {
       return res.status(200).json({ success: true });
     }
     return res.status(401).json({ success: false });
