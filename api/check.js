@@ -1,8 +1,7 @@
-import { createClient } from '@vercel/kv';
+import { createClient } from 'redis';
 
 export default async function handler(req, res) {
-  // 1. SAFETY FIRST: Handle the "Clue Check" before touching the database.
-  // This guarantees "TWENTYTWO" works even if the database explodes.
+  // 1. CLUE CHECK (Safety First - Always works)
   try {
     const { method } = req;
     const { code, step } = req.body || {};
@@ -17,47 +16,50 @@ export default async function handler(req, res) {
       return res.status(401).json({ success: false });
     }
   } catch (e) {
-    // If the clue check fails, something is very wrong with the data sent
     return res.status(500).json({ error: "Input Error" });
   }
 
-  // 2. THE DATABASE: Now that the clue check is done, we try to load the leaderboard.
-  // We wrap this in a separate block so it can't break the part above.
+  // 2. LEADERBOARD (Using the new Redis client)
+  const client = createClient({
+    url: process.env.REDIS_URL
+  });
+
   try {
     const { method, body } = req;
-    
-    // Connect using the exact variable from your settings
-    const kv = createClient({
-      url: process.env.REDIS_URL, 
-    });
 
-    // GET: Fetch the list
+    // We must "connect" before we can send data
+    await client.connect();
+
+    // GET: Load Leaderboard
     if (method === 'GET') {
-      const list = await kv.zrange('leaderboard', 0, 9, { withScores: true });
-      const formatted = [];
-      for (let i = 0; i < list.length; i += 2) {
-        formatted.push({ member: list[i], score: list[i+1] });
-      }
+      const list = await client.zRangeWithScores('leaderboard', 0, 9);
+      // Redis returns keys differently, we format them here
+      const formatted = list.map(item => ({ member: item.value, score: item.score }));
+      
+      await client.disconnect();
       return res.status(200).json({ leaderboard: formatted });
     }
 
-    // POST: Save a name
+    // POST: Save Name
     if (method === 'POST' && body.name) {
       const score = Date.now();
-      await kv.zadd('leaderboard', { score: score, member: body.name });
+      await client.zAdd('leaderboard', { score: score, value: body.name });
       
-      // Return the new list immediately
-      const list = await kv.zrange('leaderboard', 0, 9, { withScores: true });
-      const formatted = [];
-      for (let i = 0; i < list.length; i += 2) {
-        formatted.push({ member: list[i], score: list[i+1] });
-      }
+      const list = await client.zRangeWithScores('leaderboard', 0, 9);
+      const formatted = list.map(item => ({ member: item.value, score: item.score }));
+      
+      await client.disconnect();
       return res.status(200).json({ leaderboard: formatted });
     }
+    
+    // Cleanup if no matching method
+    if (client.isOpen) await client.disconnect();
+    return res.status(200).json({ success: true });
 
   } catch (error) {
-    // 3. FAIL SAFE: If the database fails, we log it but don't crash the user.
-    console.error("Database Error:", error.message);
+    console.error("Redis Error:", error);
+    if (client.isOpen) await client.disconnect();
+    // Return empty list instead of crashing
     return res.status(200).json({ leaderboard: [] }); 
   }
 }
