@@ -1,15 +1,15 @@
 import { createClient } from '@vercel/kv';
 
-// We explicitly tell the code to look for your "STORAGE" prefixed variables
+// This tells the code to use the REDIS_URL we see in your Environment Variables
 const kv = createClient({
-  url: process.env.STORAGE_REST_API_URL,
-  token: process.env.STORAGE_REST_API_TOKEN,
+  url: process.env.REDIS_URL,
 });
 
 export default async function handler(req, res) {
   try {
     const { method } = req;
     
+    // 1. GET: Load the leaderboard
     if (method === 'GET') {
       const list = await kv.zrange('leaderboard', 0, 9, { withScores: true });
       const formatted = [];
@@ -19,6 +19,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ leaderboard: formatted });
     }
 
+    // 2. POST: Handle codes or Save name
     if (method === 'POST') {
       const { code, step, name } = req.body;
 
@@ -30,6 +31,7 @@ export default async function handler(req, res) {
       }
 
       if (name) {
+        // Save name with the current time as the score
         await kv.zadd('leaderboard', { score: Date.now(), member: name });
         const list = await kv.zrange('leaderboard', 0, 9, { withScores: true });
         const formatted = [];
