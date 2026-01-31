@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "@upstash/redis": "latest"
+    "@vercel/kv": "latest"
   }
 }
