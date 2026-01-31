@@ -1,12 +1,16 @@
-import { kv } from '@vercel/kv';
+import { createClient } from '@vercel/kv';
+
+// We explicitly tell the code to look for your "STORAGE" prefixed variables
+const kv = createClient({
+  url: process.env.STORAGE_REST_API_URL,
+  token: process.env.STORAGE_REST_API_TOKEN,
+});
 
 export default async function handler(req, res) {
   try {
     const { method } = req;
     
-    // GET: Load the leaderboard
     if (method === 'GET') {
-      // We use 'rev: false' to show the oldest entries (first people to finish) first
       const list = await kv.zrange('leaderboard', 0, 9, { withScores: true });
       const formatted = [];
       for (let i = 0; i < list.length; i += 2) {
@@ -15,7 +19,6 @@ export default async function handler(req, res) {
       return res.status(200).json({ leaderboard: formatted });
     }
 
-    // POST: Check codes OR Save name
     if (method === 'POST') {
       const { code, step, name } = req.body;
 
@@ -27,10 +30,7 @@ export default async function handler(req, res) {
       }
 
       if (name) {
-        // Save the name using the current time as the score
         await kv.zadd('leaderboard', { score: Date.now(), member: name });
-        
-        // Return the updated list immediately
         const list = await kv.zrange('leaderboard', 0, 9, { withScores: true });
         const formatted = [];
         for (let i = 0; i < list.length; i += 2) {
@@ -40,7 +40,6 @@ export default async function handler(req, res) {
       }
     }
   } catch (error) {
-    // This will help us see the exact error in your Vercel Logs
     console.error("Leaderboard Error:", error.message);
     return res.status(500).json({ error: "Connection Failed" });
   }
