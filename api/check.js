@@ -1,24 +1,29 @@
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis'
+
+const redis = Redis.fromEnv()
 
 export default async function handler(req, res) {
   try {
     const { method } = req;
     
-    // 1. GET: Load the leaderboard names
+    // 1. GET: Fetch the leaderboard
     if (method === 'GET') {
-      const list = await kv.zrange('leaderboard', 0, 9, { withScores: true });
+      const list = await redis.zrange('leaderboard', 0, 9, { withScores: true });
       const formatted = [];
-      for (let i = 0; i < list.length; i += 2) {
-        formatted.push({ member: list[i], score: list[i+1] });
+      // Upstash returns objects like { member: "name", score: 123 }
+      for (let i = 0; i < list.length; i++) {
+        formatted.push({ 
+            member: list[i].member || list[i], 
+            score: list[i].score || 0 
+        });
       }
       return res.status(200).json({ leaderboard: formatted });
     }
 
-    // 2. POST: Handle codes or Save name
+    // 2. POST: Code check or Name save
     if (method === 'POST') {
       const { code, step, name } = req.body;
 
-      // Check codes (TWENTYTWO / OPUS)
       if (code) {
         const cleanedInput = code.replace(/\s+/g, '').toUpperCase();
         const answers = { 1: "TWENTYTWO", 2: "OPUS" };
@@ -26,19 +31,16 @@ export default async function handler(req, res) {
         return res.status(401).json({ success: false });
       }
 
-      // Save name to leaderboard
       if (name) {
         const score = Date.now(); 
-        await kv.zadd('leaderboard', { score: score, member: name });
-        const list = await kv.zrange('leaderboard', 0, 9, { withScores: true });
-        const formatted = [];
-        for (let i = 0; i < list.length; i += 2) {
-          formatted.push({ member: list[i], score: list[i+1] });
-        }
-        return res.status(200).json({ leaderboard: formatted });
+        await redis.zadd('leaderboard', { score: score, member: name });
+        
+        const newList = await redis.zrange('leaderboard', 0, 9, { withScores: true });
+        return res.status(200).json({ leaderboard: newList });
       }
     }
   } catch (error) {
-    return res.status(500).json({ error: "Database error" });
+    console.error("Upstash Error:", error);
+    return res.status(500).json({ error: error.message });
   }
 }
