@@ -19,33 +19,33 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Input Error" });
   }
 
-  // 2. LEADERBOARD (Using the new Redis client)
+  // 2. LEADERBOARD (Unlimited - Fetch Everyone)
   const client = createClient({
     url: process.env.REDIS_URL
   });
 
   try {
     const { method, body } = req;
-
-    // We must "connect" before we can send data
     await client.connect();
 
-    // GET: Load Leaderboard
+    // GET: Load the ENTIRE Leaderboard (0 to -1 means "All")
     if (method === 'GET') {
-      const list = await client.zRangeWithScores('leaderboard', 0, 9);
-      // Redis returns keys differently, we format them here
+      const list = await client.zRangeWithScores('leaderboard', 0, -1);
+      
+      // Redis returns data in a specific format, we map it to { member, score }
       const formatted = list.map(item => ({ member: item.value, score: item.score }));
       
       await client.disconnect();
       return res.status(200).json({ leaderboard: formatted });
     }
 
-    // POST: Save Name
+    // POST: Save Name & Return Updated List
     if (method === 'POST' && body.name) {
       const score = Date.now();
       await client.zAdd('leaderboard', { score: score, value: body.name });
       
-      const list = await client.zRangeWithScores('leaderboard', 0, 9);
+      // Fetch the updated full list immediately
+      const list = await client.zRangeWithScores('leaderboard', 0, -1);
       const formatted = list.map(item => ({ member: item.value, score: item.score }));
       
       await client.disconnect();
@@ -59,7 +59,7 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error("Redis Error:", error);
     if (client.isOpen) await client.disconnect();
-    // Return empty list instead of crashing
+    // Return empty list instead of crashing if something goes wrong
     return res.status(200).json({ leaderboard: [] }); 
   }
 }
